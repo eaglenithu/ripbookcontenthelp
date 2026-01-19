@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 
     <style>
         :root {
@@ -31,7 +32,7 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             width: 100%;
         }
 
@@ -49,7 +50,7 @@
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 20px;
         }
 
@@ -78,7 +79,6 @@
             gap: 10px;
         }
 
-        /* CSS for Truncated View (Short View) */
         .content-box {
             font-size: 0.9rem;
             color: #666;
@@ -87,8 +87,6 @@
             padding: 12px;
             border-radius: 8px;
             border-left: 4px solid var(--accent-color);
-            
-            /* Logic: Show only 2 lines and add "..." */
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;  
@@ -111,7 +109,7 @@
             gap: 8px;
             transition: 0.3s;
             width: 100%;
-            margin-top: auto; /* Push button to bottom of card */
+            margin-top: auto;
         }
 
         .btn:hover { opacity: 0.9; }
@@ -124,6 +122,51 @@
             border-radius: 6px;
             font-size: 13px;
             box-sizing: border-box;
+        }
+
+        /* Crop Card specific styles */
+        .crop-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-top: 15px;
+        }
+        
+        .canvas-border {
+            border: 2px solid #333;
+            background: #000;
+            line-height: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .wm-toggle-bar {
+            display: flex;
+            gap: 5px;
+            width: 100%;
+        }
+
+        .wm-opt {
+            flex: 1;
+            font-size: 11px;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #fff;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .wm-opt.active {
+            background: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+        }
+
+        .save-btn {
+            background-color: #28a745 !important;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -156,15 +199,15 @@
         </div>
 
         <div class="card">
-    <h2><i class="fas fa-envelope"></i> Live Link Email</h2>
-    <div id="text3" class="content-box" 
-         data-fulltext="வணக்கம்,&#10;நீங்கள் கேட்டதற்கிணங்க இறுதிக்கிரியை நேரடிஒளிபரப்பு செய்யப்பட்ட காணொளியை மின்னஞ்சலில் இணைத்துள்ளேன். மேலும் நீங்கள் இதை பதிவிறக்கம் செய்து கொள்ளலாம்.&#10;[இணைப்பு : Click Here]&#10;இது தொடர்பில் ஏதேனும் சந்தேகம் இருப்பின் எம்மைத் தொடர்பு கொள்ளவும்.&#10;நன்றி!">
-        வணக்கம், நீங்கள் கேட்டதற்கிணங்க இறுதிக்கிரியை நேரடிஒளிபரப்பு செய்யப்பட்ட காணொளியை...
-    </div>
-    <button class="btn" onclick="copyText('text3', 'Email template copied with line breaks!')">
-        <i class="far fa-copy"></i> Copy Full Text
-    </button>
-</div>
+            <h2><i class="fas fa-envelope"></i> Live Link Email</h2>
+            <div id="text3" class="content-box" 
+                 data-fulltext="வணக்கம்,&#10;நீங்கள் கேட்டதற்கிணங்க இறுதிக்கிரியை நேரடிஒளிபரப்பு செய்யப்பட்ட காணொளியை மின்னஞ்சலில் இணைத்துள்ளேன். மேலும் நீங்கள் இதை பதிவிறக்கம் செய்து கொள்ளலாம்.&#10;[இணைப்பு : Click Here]&#10;இது தொடர்பில் ஏதேனும் சந்தேகம் இருப்பின் எம்மைத் தொடர்பு கொள்ளவும்.&#10;நன்றி!">
+                வணக்கம், நீங்கள் கேட்டதற்கிணங்க இறுதிக்கிரியை நேரடிஒளிபரப்பு செய்யப்பட்ட காணொளியை...
+            </div>
+            <button class="btn" onclick="copyText('text3', 'Email template copied!')">
+                <i class="far fa-copy"></i> Copy Full Text
+            </button>
+        </div>
 
         <div class="card">
             <h2><i class="fab fa-youtube"></i> YouTube Converter</h2>
@@ -182,85 +225,158 @@
             </button>
         </div>
 
+        <div class="card">
+            <h2><i class="fas fa-image"></i> Photo Crop (246x266)</h2>
+            <div class="crop-area">
+                <input type="file" id="imageLoader" accept="image/*" style="display:none">
+                <button class="btn" style="background-color: #6c757d;" onclick="document.getElementById('imageLoader').click()">
+                    <i class="fas fa-upload"></i> Upload Photo
+                </button>
+
+                <div class="canvas-border">
+                    <canvas id="canvas" width="246" height="266"></canvas>
+                </div>
+
+                <div class="wm-toggle-bar">
+                    <button id="btnGrey" class="wm-opt active">Grey WM</button>
+                    <button id="btnWhite" class="wm-opt">White WM</button>
+                </div>
+
+                <button class="btn save-btn" onclick="saveBothFiles()">
+                    <i class="fas fa-cloud-download-alt"></i> Save Both Files
+                </button>
+            </div>
+        </div>
+
     </div>
 </div>
 
 <script>
-    /**
-     * Copy text from 'data-fulltext' attribute to clipboard.
-     * This ensures the full content is copied even if only 2 lines are visible.
-     */
+    // --- TEXT UTILITIES ---
     function copyText(elementId, successMsg) {
         const element = document.getElementById(elementId);
         const fullText = element.getAttribute('data-fulltext');
-        
         navigator.clipboard.writeText(fullText).then(() => {
             Swal.fire({
-                icon: 'success',
-                title: 'Success!',
-                text: successMsg,
-                timer: 1500,
-                showConfirmButton: false,
-                toast: true,
-                position: 'top-end'
+                icon: 'success', title: 'Copied!', text: successMsg,
+                timer: 1500, showConfirmButton: false, toast: true, position: 'top-end'
             });
         });
     }
 
-    /**
-     * Converts YouTube Live URL to standard Watch URL.
-     */
     function convertYouTube() {
         const input = document.getElementById("inputLink").value.trim();
         const match = input.match(/\/live\/([a-zA-Z0-9_-]+)/);
-        
         if (match && match[1]) {
             const newUrl = "https://www.youtube.com/watch?v=" + match[1];
             navigator.clipboard.writeText(newUrl).then(() => {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Converted!',
-                    text: 'Standard YouTube link copied to clipboard.',
-                    confirmButtonColor: '#3498db'
-                });
+                Swal.fire({ icon: 'success', title: 'Converted!', text: 'Standard link copied.' });
             });
         } else {
-            showError('Invalid YouTube Live link format.');
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Invalid YouTube Live link.' });
         }
     }
 
-    /**
-     * Converts Bunny HLS (.m3u8) to MP4 link format.
-     */
     function convertBunny() {
         const input = document.getElementById("bunnyInput").value.trim();
-        
         if (input.includes("playlist.m3u8")) {
             const newUrl = input.replace("playlist.m3u8", "play_720p.mp4");
-            
             navigator.clipboard.writeText(newUrl).then(() => {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Converted!',
-                    text: 'MP4 Video link copied to clipboard.',
-                    confirmButtonColor: '#9b59b6'
-                });
+                Swal.fire({ icon: 'success', title: 'Converted!', text: 'MP4 link copied.' });
             });
         } else {
-            showError('Invalid link. Please ensure it contains "playlist.m3u8"');
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Invalid Bunny M3U8 link.' });
         }
     }
 
-    /**
-     * Standard Error Alert function.
-     */
-    function showError(msg) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: msg,
-            confirmButtonColor: '#e74c3c'
-        });
+    // --- IMAGE EDITOR LOGIC ---
+    const canvas = new fabric.Canvas('canvas', { preserveObjectStacking: true });
+    const logoGrey = 'https://eaglenithu.github.io/ripbookcontenthelp/RIP_Watermark1.png';
+    const logoWhite = 'https://eaglenithu.github.io/ripbookcontenthelp/RIP_Watermark2.png';
+    let activeWatermark = null, uploadedImg = null;
+
+    document.getElementById('imageLoader').addEventListener('change', function(e) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const imgObj = new Image();
+            imgObj.src = event.target.result;
+            imgObj.onload = function() {
+                if(uploadedImg) canvas.remove(uploadedImg);
+                uploadedImg = new fabric.Image(imgObj);
+                uploadedImg.scaleToWidth(246);
+                canvas.add(uploadedImg);
+                uploadedImg.sendToBack();
+                canvas.centerObject(uploadedImg);
+                
+                // Add tiny watermark by default if first time
+                if(!activeWatermark) addWatermark(logoGrey);
+                canvas.setActiveObject(uploadedImg);
+                canvas.renderAll();
+            };
+        };
+        reader.readAsDataURL(e.target.files[0]);
+    });
+
+    function addWatermark(url) {
+        // Default scale is very small (0.08)
+        let props = activeWatermark ? { 
+            left: activeWatermark.left, top: activeWatermark.top, 
+            scaleX: activeWatermark.scaleX, scaleY: activeWatermark.scaleY 
+        } : { left: 20, top: 20, scaleX: 0.08, scaleY: 0.08 };
+        
+        if (activeWatermark) canvas.remove(activeWatermark);
+
+        fabric.Image.fromURL(url, function(img) {
+            img.set({ 
+                ...props, 
+                cornerColor: '#3498db', cornerSize: 8, transparentCorners: false 
+            });
+            activeWatermark = img;
+            canvas.add(img);
+            canvas.bringToFront(img);
+            canvas.renderAll();
+        }, { crossOrigin: 'anonymous' });
+    }
+
+    document.getElementById('btnGrey').onclick = function() {
+        addWatermark(logoGrey);
+        this.classList.add('active');
+        document.getElementById('btnWhite').classList.remove('active');
+    };
+    document.getElementById('btnWhite').onclick = function() {
+        addWatermark(logoWhite);
+        this.classList.add('active');
+        document.getElementById('btnGrey').classList.remove('active');
+    };
+
+    function saveBothFiles() {
+        if(!uploadedImg) return Swal.fire('Wait!', 'Please upload a photo first.', 'warning');
+        
+        canvas.discardActiveObject().renderAll();
+
+        // 1. Save Watermarked Version
+        const linkWM = document.createElement('a');
+        linkWM.download = 'ripbook_watermarked.png';
+        linkWM.href = canvas.toDataURL({ format: 'png', quality: 1.0 });
+        linkWM.click();
+
+        // 2. Save Clean Version
+        setTimeout(() => {
+            activeWatermark.visible = false;
+            canvas.renderAll();
+            const linkClean = document.createElement('a');
+            linkClean.download = 'ripbook_clean.png';
+            linkClean.href = canvas.toDataURL({ format: 'png', quality: 1.0 });
+            linkClean.click();
+            
+            activeWatermark.visible = true;
+            canvas.renderAll();
+            
+            Swal.fire({
+                icon: 'success', title: 'Done!', text: 'Both files saved successfully.',
+                timer: 2000, showConfirmButton: false
+            });
+        }, 1000);
     }
 </script>
 
